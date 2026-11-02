@@ -244,7 +244,7 @@ public class Modsecurity3Generator extends DefaultCodegen implements CodegenConf
   private static final String JSON_ARGS_PREFIX = "json.";
   // ModSecurity3 keys array elements "json.items.array_0", Coraza "json.items.0";
   // this fragment matches either so generated selectors work on both engines.
-  private static final String ARRAY_INDEX_REGEX = "(?:array_)?\\d{1,9}";
+  private static final String ARRAY_INDEX_REGEX = "(array_)?[0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?";
   private static final String PROP_INDEX_KEY = "x-codegen-propIndex";
   private static final int PROP_INDEX_MAX = 12;
   private static final int MAX_FLATTEN_DEPTH = 5;
