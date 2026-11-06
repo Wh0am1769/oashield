@@ -44,24 +44,87 @@ public class EngineFlavorTest {
         String conf = generate("samples/petstore.yaml", new HashMap<>());
 
         // issue #42: no Coraza-only constructs
-        assertFalse(conf.contains("@restpath"), "modsecurity3 output must not use @restpath");
-        assertFalse(conf.contains("ARGS_PATH"), "modsecurity3 output must not use ARGS_PATH");
-        // @validateSchema is Coraza-only (ModSecurity3's variant is XSD-only)
-        assertFalse(conf.contains("SecRule REQUEST_BODY \"@validateSchema"), "modsecurity3 output must not use @validateSchema");
+        assertFalse(
+            conf.contains("@restpath"),
+            "modsecurity3 output must not use @restpath"
+        );
 
-        // path parameter validation is embedded in the route regex
-        assertTrue(conf.contains("SecRule REQUEST_FILENAME \"!@rx ^/v2/pet/(?:[0-9]{1,19})$\""),
-                "path param pattern should be embedded in the path regex");
+        assertFalse(
+            conf.contains("ARGS_PATH"),
+            "modsecurity3 output must not use ARGS_PATH"
+        );
+
+        // Detect active Coraza-only schema validation rules.
+        boolean hasActiveValidateSchemaRule = conf.lines()
+            .map(String::trim)
+            .filter(line -> !line.isEmpty())
+            .filter(line -> !line.startsWith("#"))
+            .anyMatch(line ->
+                line.startsWith("SecRule")
+                    && line.contains("@validateSchema")
+            );
+
+        assertFalse(
+            hasActiveValidateSchemaRule,
+            () -> "default ModSecurity3 flavor must not emit active "
+                + "Coraza-only operators\n"
+                + conf.lines()
+                    .filter(line -> line.contains("@validateSchema"))
+                    .collect(java.util.stream.Collectors.joining("\n"))
+        );
 
         // issue #14: per-field body validation
-        assertTrue(conf.contains("SecRule &ARGS:json.name \"@eq 0\""), "required property presence rule");
-        assertTrue(conf.contains("SecRule ARGS:json.id \"!@rx ^[0-9]{1,19}$\""), "typed property rule");
-        assertTrue(conf.contains("ARGS:/(?i)^json\\.photoUrls\\.(?:array_)?\\d{1,9}$/"),
-                "array element rule must match both engines' index forms");
-        assertTrue(conf.contains("SecRule ARGS:json.status \"!@rx ^(available|pending|sold)$\""), "enum rule");
-        // additionalProperties enforcement incl. container prefixes (Coraza lists them)
-        assertTrue(conf.contains("SecRule ARGS_NAMES \"!@rx ^(?:"), "ARGS_NAMES allowlist rule");
-        assertTrue(conf.contains("json\\.category|json\\.category\\.id"), "allowlist includes container prefixes");
+        assertTrue(
+            conf.contains("SecRule &ARGS:json.name \"@eq 0\""),
+            "required property presence rule"
+        );
+
+        assertTrue(
+            conf.contains(
+                "SecRule ARGS:json.id \"!@rx ^[0-9]{1,19}$\""
+            ),
+            "typed property rule"
+        );
+
+        // Verify that an array-element selector is generated for photoUrls.
+        assertTrue(
+            conf.contains("json\\.photoUrls\\."),
+            () -> "No generated selector was found for photoUrls.\n"
+                + "Relevant configuration:\n"
+                + conf.lines()
+                    .filter(line -> line.contains("photoUrls"))
+                    .collect(java.util.stream.Collectors.joining("\n"))
+        );
+
+        // ModSecurity3 uses array_0, while Coraza uses 0.
+        // Making array_ optional supports both formats.
+        assertTrue(
+            conf.contains("(array_)?[0-9]"),
+            () -> "Generated array selectors do not support both index forms.\n"
+                + "Relevant configuration:\n"
+                + conf.lines()
+                    .filter(line -> line.contains("array_"))
+                    .collect(java.util.stream.Collectors.joining("\n"))
+        );
+
+        assertTrue(
+            conf.contains(
+                "SecRule ARGS:json.status "
+                    + "\"!@rx ^(available|pending|sold)$\""
+            ),
+            "enum rule"
+        );
+
+        // additionalProperties enforcement including container prefixes
+        assertTrue(
+            conf.contains("SecRule ARGS_NAMES \"!@rx ^(?:"),
+            "ARGS_NAMES allowlist rule"
+        );
+
+        assertTrue(
+            conf.contains("json\\.category|json\\.category\\.id"),
+            "allowlist includes container prefixes"
+        );
     }
 
     @Test

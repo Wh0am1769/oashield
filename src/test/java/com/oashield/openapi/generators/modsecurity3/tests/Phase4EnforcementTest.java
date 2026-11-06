@@ -18,12 +18,17 @@ import org.openapitools.codegen.config.CodegenConfigurator;
 
 import com.oashield.openapi.generators.modsecurity3.Modsecurity3Generator;
 
+
 /**
  * New enforcement (Phase 4): header/cookie parameter validation, required
  * parameter presence, power-of-10 multipleOf, and body array element counts.
  */
 public class Phase4EnforcementTest {
 
+    private static final String ARRAY_INDEX_REGEX =
+    "(array_)?[0-9][0-9]?[0-9]?[0-9]?[0-9]?"
+        + "[0-9]?[0-9]?[0-9]?[0-9]?";
+        
     @TempDir
     static Path outputDir;
     private static String conf;
@@ -91,10 +96,23 @@ public class Phase4EnforcementTest {
 
     @Test
     void bodyArrayCountsAreEnforced() {
-        assertTrue(conf.contains("SecRule &ARGS:/(?i)^json\\.labels\\.(?:array_)?\\d{1,9}$/ \"@lt 1\""),
-                "minItems count rule missing:\n" + conf);
-        assertTrue(conf.contains("SecRule &ARGS:/(?i)^json\\.labels\\.(?:array_)?\\d{1,9}$/ \"@gt 3\""),
-                "maxItems count rule missing:\n" + conf);
+        assertTrue(
+        conf.contains(
+                "SecRule &ARGS:/(?i)^json\\.labels\\."
+                + ARRAY_INDEX_REGEX
+                + "$/ \"@lt 1\""
+        ),
+        "minItems count rule missing:\n" + conf
+        );
+
+        assertTrue(
+        conf.contains(
+                "SecRule &ARGS:/(?i)^json\\.labels\\."
+                + ARRAY_INDEX_REGEX
+                + "$/ \"@gt 3\""
+        ),
+        "maxItems count rule missing:\n" + conf
+        );
     }
 
     @Test

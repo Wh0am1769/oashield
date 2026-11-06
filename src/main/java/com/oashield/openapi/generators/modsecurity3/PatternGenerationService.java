@@ -356,7 +356,7 @@ public class PatternGenerationService {
             return maxLengthForType.toString();
         }
 
-        return maxLength == null ? "" : maxLength.toString();
+        return maxLength == null || maxLength == Integer.MAX_VALUE ? "" : maxLength.toString();
     }
 
     /**

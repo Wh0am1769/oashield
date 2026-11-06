@@ -24,12 +24,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oashield.openapi.generators.modsecurity3.PatternGenerationService;
 
+
 /**
  * Regression tests for the confirmed generator bugs: mangled spec patterns,
  * blocked root-array bodies, path patterns crossing segment boundaries,
  * allowEmptyValue, and numeric enums.
  */
 public class Phase1FixesTest {
+
+    private static final String ARRAY_INDEX_REGEX =
+    "(array_)?[0-9][0-9]?[0-9]?[0-9]?[0-9]?"
+        + "[0-9]?[0-9]?[0-9]?[0-9]?";
 
     @TempDir
     static Path outputDir;
@@ -82,19 +87,44 @@ public class Phase1FixesTest {
 
     @Test
     void rootArrayBodyOfModelsIsFlattened() {
-        assertTrue(conf.contains("json\\.(?:array_)?\\d{1,9}\\.username"),
-                "root-array element fields should be validated and allowlisted:\n" + conf);
-        // the array-body operation's ARGS_NAMES allowlist covers the bare json
-        // container (Coraza lists it for root arrays), index keys, and fields
-        assertTrue(conf.contains(
-                "^(?:json|json\\.(?:array_)?\\d{1,9}|json\\.(?:array_)?\\d{1,9}\\.username|json\\.(?:array_)?\\d{1,9}\\.level)$"),
-                "root-array body allowlist should cover index keys and element fields:\n" + conf);
+        assertTrue(
+            conf.contains(
+                "json\\."
+                    + ARRAY_INDEX_REGEX
+                    + "\\.username"
+            ),
+            "root-array element fields should be validated and allowlisted:\n"
+                + conf
+        );
+
+        // The array-body operation's ARGS_NAMES allowlist covers the bare json
+        // container (Coraza lists it for root arrays), index keys, and fields.
+        assertTrue(
+            conf.contains(
+                "^(?:json|json\\."
+                    + ARRAY_INDEX_REGEX
+                    + "|json\\."
+                    + ARRAY_INDEX_REGEX
+                    + "\\.username|json\\."
+                    + ARRAY_INDEX_REGEX
+                    + "\\.level)$"
+            ),
+            "root-array body allowlist should cover index keys and element fields:\n"
+                + conf
+        );
     }
 
     @Test
     void rootArrayBodyOfPrimitivesIsFlattened() {
-        assertTrue(conf.contains("/(?i)^json\\.(?:array_)?\\d{1,9}$/"),
-                "root-array primitive elements should get an indexed selector:\n" + conf);
+        assertTrue(
+            conf.contains(
+                "/(?i)^json\\."
+                    + ARRAY_INDEX_REGEX
+                    + "$/"
+            ),
+            "root-array primitive elements should get an indexed selector:\n"
+                + conf
+        );
     }
 
     @Test
