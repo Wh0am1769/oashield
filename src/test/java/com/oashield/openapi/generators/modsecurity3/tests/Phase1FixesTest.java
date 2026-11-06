@@ -32,9 +32,7 @@ import com.oashield.openapi.generators.modsecurity3.PatternGenerationService;
  */
 public class Phase1FixesTest {
 
-    private static final String ARRAY_INDEX_REGEX =
-    "(array_)?[0-9][0-9]?[0-9]?[0-9]?[0-9]?"
-        + "[0-9]?[0-9]?[0-9]?[0-9]?";
+    private static final String ARRAY_INDEX_REGEX = "(?:array_)?[0-9](?:[0-9]?){8}";
 
     @TempDir
     static Path outputDir;

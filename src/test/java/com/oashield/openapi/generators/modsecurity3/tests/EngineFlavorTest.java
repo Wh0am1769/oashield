@@ -87,8 +87,7 @@ public class EngineFlavorTest {
         );
 
         // Verify that an array-element selector is generated for photoUrls.
-        assertTrue(conf.contains("ARGS:/(?i)^json\\.photoUrls\\.(array_)?"
-                + "[0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?$/"),
+        assertTrue(conf.contains("ARGS:/(?i)^json\\.photoUrls\\.(?:array_)?[0-9](?:[0-9]?){8}$/"),
                 "photoUrls must use the indexed selector for both engines");
         assertTrue(
             conf.contains(
