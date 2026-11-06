@@ -244,7 +244,10 @@ public class Modsecurity3Generator extends DefaultCodegen implements CodegenConf
   private static final String JSON_ARGS_PREFIX = "json.";
   // ModSecurity3 keys array elements "json.items.array_0", Coraza "json.items.0";
   // this fragment matches either so generated selectors work on both engines.
-  private static final String ARRAY_INDEX_REGEX = "(array_)?[0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?";
+  // Spell out the nine-digit bound without a {1,9} quantifier in selectors.
+  private static final String ARRAY_INDEX_REGEX = "(array_)?[0-9]"
+      + "[0-9]?[0-9]?[0-9]?[0-9]?"
+      + "[0-9]?[0-9]?[0-9]?[0-9]?";
   private static final String PROP_INDEX_KEY = "x-codegen-propIndex";
   private static final int PROP_INDEX_MAX = 12;
   private static final int MAX_FLATTEN_DEPTH = 5;
@@ -1210,8 +1213,8 @@ public class Modsecurity3Generator extends DefaultCodegen implements CodegenConf
    * ARGS_NAMES allowlist.
    *
    * x-oashield-argTarget is either the literal ARGS key ("json.category.name") or,
-   * when the path crosses an array, a regex selector ("/^json\.tags\.(?:array_)?\d{1,9}\.name$/")
-   * that matches both engines' array key forms.
+   * when the path crosses an array, a regex selector matching both engines'
+   * array key forms (such as json.tags.array_0.name and json.tags.0.name).
    */
   private void decorateBodyProperty(CodegenProperty prop, java.util.Collection<String> argsAllowlist) {
     String path = prop.baseName;
