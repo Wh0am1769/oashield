@@ -1,0 +1,26 @@
+openapi: 3.0.3
+info:
+  title: Array selector regression
+  version: 1.0.0
+paths:
+  /items:
+    post:
+      operationId: createItems
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                names:
+                  type: array
+                  minItems: 1
+                  maxItems: 3
+                  items:
+                    type: string
+                    pattern: '^[a-z]+$'
+      responses:
+        '200':
+          description: OK

@@ -358,7 +358,7 @@ public class Modsecurity3Generator extends DefaultCodegen implements CodegenConf
       return maxLengthForType.toString();
     }
 
-    return maxLength == null || maxLength == Integer.MAX_VALUE ? "" : maxLength.toString();
+    return maxLength == null ? "" : maxLength.toString();
   }
 
   // Returns a pattern for decimal types.

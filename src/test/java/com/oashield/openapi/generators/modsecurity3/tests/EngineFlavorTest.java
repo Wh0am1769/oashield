@@ -87,26 +87,9 @@ public class EngineFlavorTest {
         );
 
         // Verify that an array-element selector is generated for photoUrls.
-        assertTrue(
-            conf.contains("json\\.photoUrls\\."),
-            () -> "No generated selector was found for photoUrls.\n"
-                + "Relevant configuration:\n"
-                + conf.lines()
-                    .filter(line -> line.contains("photoUrls"))
-                    .collect(java.util.stream.Collectors.joining("\n"))
-        );
-
-        // ModSecurity3 uses array_0, while Coraza uses 0.
-        // Making array_ optional supports both formats.
-        assertTrue(
-            conf.contains("(array_)?[0-9]"),
-            () -> "Generated array selectors do not support both index forms.\n"
-                + "Relevant configuration:\n"
-                + conf.lines()
-                    .filter(line -> line.contains("array_"))
-                    .collect(java.util.stream.Collectors.joining("\n"))
-        );
-
+        assertTrue(conf.contains("ARGS:/(?i)^json\\.photoUrls\\.(array_)?"
+                + "[0-9][0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?[0-9]?$/"),
+                "photoUrls must use the indexed selector for both engines");
         assertTrue(
             conf.contains(
                 "SecRule ARGS:json.status "
